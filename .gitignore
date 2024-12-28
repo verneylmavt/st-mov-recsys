@@ -1,3 +1,4 @@
 models/ncf/best_model.pth
 models/ncf/ratings-o-m.parquet
 models/ncf/ratings.parquet
+models/ncf/ratings.csv
