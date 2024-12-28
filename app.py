@@ -4,7 +4,6 @@ import requests
 import streamlit as st
 import numpy as np
 import pandas as pd
-import pyarrow as pa
 import onnxruntime as ort
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics.pairwise import cosine_similarity
@@ -21,7 +20,7 @@ Dataset = MovieLens 32M Dataset
         "parameters": """
 Batch Size = 1024
 User Size = 138,493
-Item Size = 27,278
+Movie Size = 27,278
 Number of MLP (Multi-Layer Perceptron) Layers = 2 (128+64)
 Dropout Rate = 0.2
 Learning Rate = 0.001
@@ -121,6 +120,28 @@ def load_embeddings(model_name):
 def load_genres():
     return ['Action', 'Adventure', 'Animation', 'Children', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Film-Noir', 'Horror', 'IMAX', 'Musical', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western']
 
+@st.cache_data
+def load_training_data():
+    training_data = {
+        "Epoch": list(range(1, 15)),
+        "Train Loss": [
+            0.7816, 0.6662, 0.6286, 0.6047, 0.5881, 0.5767, 0.5683, 0.5621, 
+            0.5572, 0.5533, 0.5503, 0.5477, 0.5456, 0.5439
+        ],
+        "Train MAE": [
+            0.6713, 0.6177, 0.5989, 0.5865, 0.5778, 0.5717, 0.5674, 0.5641,
+            0.5615, 0.5595, 0.5579, 0.5566, 0.5555, 0.5545
+        ],
+        "Validation Loss": [
+            0.6874, 0.6539, 0.6345, 0.6226, 0.6151, 0.6107, 0.6119, 0.6072, 
+            0.6094, 0.6076, 0.6067, 0.6082, 0.6073, 0.6069
+        ],
+        "Validation MAE": [
+            0.6271, 0.6109, 0.6016, 0.5937, 0.5910, 0.5886, 0.5889, 0.5853,
+            0.5862, 0.5855, 0.5857, 0.5872, 0.5877, 0.5848
+        ]
+    }
+    return pd.DataFrame(training_data)
 
 # ----------------------
 # Prediction Function
@@ -251,6 +272,7 @@ def main():
     ratings = load_ratings(model)
     embeddings = load_embeddings(model)
     all_genres = load_genres()
+    training_data = load_training_data()
     
     user_encoder = LabelEncoder()
     user_encoder.fit_transform(ratings['userId'])
@@ -281,6 +303,7 @@ def main():
     
     with st.form(key="recommendation_form"):
         movie_name = st.text_input("Preferred Movie:")
+        st.caption("_e.g. Toy Story_")
         selected_genres = st.multiselect(
             "Preferred Genres",
             all_genres
@@ -325,5 +348,14 @@ def main():
             st.latex(value)
     else: pass
 
+    st.subheader("""Training""")
+    st.line_chart(training_data.set_index("Epoch"))
+    
+    st.subheader("""Evaluation Metrics""")
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Mean Square Error (MSE)", "0.6059", border=True)
+    col2.metric("Root Mean Squared Error (RMSE)", "0.7784", border=True)
+    col3.metric("Mean Absolute Error (MAE)", "0.5853", border=True)
+    
 if __name__ == "__main__":
     main()
