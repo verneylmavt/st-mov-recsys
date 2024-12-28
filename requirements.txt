@@ -1,0 +1,7 @@
+requests
+streamlit
+numpy
+pandas
+pyarrow
+onnxruntime
+scikit-learn
