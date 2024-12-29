@@ -10,6 +10,8 @@ For more information about the training process, please check the `.ipynb` files
 
 If you encounter message `This app has gone to sleep due to inactivity`, click `Yes, get this app back up!` button to wake the app back up.
 
+![Demo GIF](https://github.com/verneylmavt/st-mov-recsys/blob/main/assets/demo.gif)
+
 <!-- [https://verneylogyt.streamlit.app/](https://verneylogyt.streamlit.app/) -->
 
 ## ⚙️ Running Locally
