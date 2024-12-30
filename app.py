@@ -2,6 +2,9 @@ import os
 import io
 import requests
 import streamlit as st
+from streamlit_extras.chart_container import chart_container
+from streamlit_extras.mention import mention
+from streamlit_extras.echo_expander import echo_expander
 import numpy as np
 import pandas as pd
 import onnxruntime as ort
@@ -19,20 +22,23 @@ Dataset = MovieLens 32M Dataset
         """,
         "parameters": """
 Batch Size = 1024
-User Size = 138,493
-Movie Size = 27,278
+
+Number of Users = 138,493
+Number of Movies = 27,278
+Embedding Dimension = 50
 Number of MLP (Multi-Layer Perceptron) Layers = 2 (128+64)
 Dropout Rate = 0.2
-Learning Rate = 0.001
+
 Epochs = 20
+Learning Rate = 0.001
+Loss Function = MSELoss
 Optimizer = AdamW
 Weight Decay = 0.01
-Loss Function = MSELoss
         """,
         "model_code": """
-class Model(nn.Module):
+class NCF(nn.Module):
     def __init__(self, num_users, num_items, embedding_dim=50, hidden_layers=[128, 64], dropout=0.2):
-        super(Model, self).__init__()
+        super(NCF, self).__init__()
         self.user_embedding = nn.Embedding(num_users, embedding_dim)
         self.item_embedding = nn.Embedding(num_items, embedding_dim)
         nn.init.normal_(self.user_embedding.weight, std=0.01)
@@ -46,6 +52,7 @@ class Model(nn.Module):
             input_size = hidden
         self.mlp = nn.Sequential(*layers)
         self.output_layer = nn.Linear(input_size, 1)
+        
     def forward(self, user, item):
         user_emb = self.user_embedding(user)
         item_emb = self.item_embedding(item)
@@ -328,8 +335,17 @@ def main():
     
     # st.divider()
     st.feedback("thumbs")
-    st.warning("""Disclaimer: This model has been quantized for optimization.
-            Check here for more details: [GitHub Repo🐙](https://github.com/verneylmavt/st-mov-recsys)""")
+    st.warning("""Disclaimer: This model has been quantized for optimization.""")
+    mention(
+            label="GitHub Repo: verneylmavt/st-mov-recsys",
+            icon="github",
+            url="https://github.com/verneylmavt/st-mov-recsys"
+        )
+    mention(
+            label="Other ML Tasks",
+            icon="streamlit",
+            url="https://verneylogyt.streamlit.app/"
+        )
     st.divider()
     
     st.subheader("""Pre-Processing""")
@@ -339,7 +355,57 @@ def main():
     st.code(model_info[model]["parameters"], language="None")
     
     st.subheader("""Model""")
-    st.code(model_info[model]["model_code"], language="python")
+    # st.code(model_info[model]["model_code"], language="python")
+    with echo_expander(code_location="below", label="Code"):
+        import torch
+        import torch.nn as nn
+        
+        
+        class Model(nn.Module):
+            def __init__(self, num_users, num_items, embedding_dim=50, hidden_layers=[128, 64], dropout=0.2):
+                super(Model, self).__init__()
+                # Embedding Layer for User Representations
+                self.user_embedding = nn.Embedding(num_users, embedding_dim)
+                # Embedding Layer for Item Representations
+                self.item_embedding = nn.Embedding(num_items, embedding_dim)
+                # Weight Initialization for User Embedding
+                nn.init.normal_(self.user_embedding.weight, std=0.01)
+                # Weight Initialization for Item Embedding
+                nn.init.normal_(self.item_embedding.weight, std=0.01)
+                
+                # Sequential Model for Multi-Layer Perceptron (MLP)
+                layers = []
+                # Input Size for MLP (Concatenated User and Item Embeddings)
+                input_size = embedding_dim * 2
+                # Hidden Layers Construction for MLP
+                for hidden in hidden_layers:
+                    # Fully Connected Layer for MLP
+                    layers.append(nn.Linear(input_size, hidden))
+                    # Activation Layer for Non-Linear Transformations
+                    layers.append(nn.ReLU())
+                    # Dropout Layer for Regularization
+                    layers.append(nn.Dropout(dropout))
+                    # Update Input Size for Next Layer
+                    input_size = hidden
+                # MLP Network for Learning User-Item Interactions
+                self.mlp = nn.Sequential(*layers)
+                
+                # Output Layer for Predicting Ratings
+                self.output_layer = nn.Linear(input_size, 1)
+                
+            def forward(self, user, item):
+                # Embedding of Input Users
+                user_emb = self.user_embedding(user)
+                # Embedding of Input Items
+                item_emb = self.item_embedding(item)
+                # Concatenation of User and Item Embeddings
+                x = torch.cat([user_emb, item_emb], dim=-1)
+                # Transformation of Concatenated Embeddings w/ MLP
+                x = self.mlp(x)
+                # Transformation of MLP Output → Predicted Ratings
+                rating = self.output_layer(x)
+                # Squeezing of Output Ratings
+                return rating.squeeze()
     
     if "forward_pass" in model_info[model]:
         st.subheader("Forward Pass")
@@ -349,7 +415,9 @@ def main():
     else: pass
 
     st.subheader("""Training""")
-    st.line_chart(training_data.set_index("Epoch"))
+    # st.line_chart(training_data.set_index("Epoch"))
+    with chart_container(training_data):
+        st.line_chart(training_data.set_index("Epoch"))
     
     st.subheader("""Evaluation Metrics""")
     col1, col2, col3 = st.columns(3)

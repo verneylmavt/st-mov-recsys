@@ -1,7 +1,9 @@
-requests
 streamlit
+streamlit-extras
+requests
 numpy
 pandas
 pyarrow
-onnxruntime
 scikit-learn
+torch
+onnxruntime
