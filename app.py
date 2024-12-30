@@ -10,6 +10,8 @@ import pandas as pd
 import onnxruntime as ort
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.manifold import TSNE
+import plotly.express as px
 
 # ----------------------
 # Model Information
@@ -156,7 +158,11 @@ def load_training_data():
 
 def recommend_similar_movies_name(movie_name, movies, movie_encoder, embeddings, top_n):
     movie_name = movie_name.strip()
-    matching_movies = movies[movies['title'].str.contains(movie_name, case=False)]
+    # st.write(movie_name)
+    # st.write(f"{movies.shape}")
+    # st.dataframe(movies.head())
+    matching_movies = movies[movies['title'].str.contains(movie_name, case=False, regex=False)]
+    # st.write(f" Hello: {matching_movies}")
     if matching_movies.empty:
         st.error("Movie Name Invalid")
         return None
@@ -187,8 +193,41 @@ def recommend_similar_movies_name(movie_name, movies, movie_encoder, embeddings,
     
     return recommendations
 
+# def recommend_similar_movies_name(movie_name, movies, movie_encoder, embeddings, top_n):
+#     movie_name = movie_name.strip()
+#     matching_movies = movies[movies['title'].str.contains(movie_name, case=False)]
+#     if matching_movies.empty:
+#         st.error("Movie Name Invalid")
+#         return None
+#     movie_id = matching_movies.iloc[0]['movieId']
+    
+#     movie_encoded = movie_encoder.transform([movie_id])[0]
+#     target_embedding = embeddings[movie_encoded].reshape(1, -1)
+    
+#     similarities = cosine_similarity(target_embedding, embeddings).flatten()
+#     similar_indices = similarities.argsort()[-(top_n + 1):-1][::-1]
+#     similar_movie_ids = movie_encoder.inverse_transform(similar_indices)
+    
+#     recommendations = movies[movies['movieId'].isin(similar_movie_ids)][['movieId', 'title']]
+#     recommendations['similarity'] = similarities[similar_indices]
+#     recommendations["similarity"] = np.ceil(recommendations["similarity"] * 1000) / 100
+    
+#     recommendations = recommendations.reset_index(drop=True)
+#     recommendations.index += 1
+    
+#     recommendations.rename(columns={
+#     "movieId": "Movie ID",
+#     "title": "Title",
+#     "similarity": "Cosine Similarity"
+#     }, inplace=True)
+#     recommendations["Year"] = recommendations["Title"].str.extract(r"\((\d{4})\)")
+#     recommendations["Title"] = recommendations["Title"].str.replace(r" \(\d{4}\)", "", regex=True)
+#     recommendations = recommendations[["Movie ID", "Title", "Year", "Cosine Similarity"]]
+    
+#     return recommendations, similar_indices, matching_movies.iloc[0]['title'], target_embedding
 
-def recommend_by_genre_pop(genres, all_genres, movies, ratings, top_n):
+
+def recommend_by_genre_pop(genres, movies, ratings, top_n):
     # valid_genres = sorted(all_genres)
     # for genre in genres:
     #     if genre not in valid_genres:
@@ -223,10 +262,11 @@ def recommend_by_genre_pop(genres, all_genres, movies, ratings, top_n):
 
 
 
-def recommend_combined_mix(movie_name, genres, all_genres, movies, movie_encoder, embeddings, ratings, top_n=10):
-    similar_movies = recommend_similar_movies_name(movie_name, movies, movie_encoder, embeddings, top_n=top_n*2)
+def recommend_combined_mix(movie_name, genres, movies, movie_encoder, embeddings, ratings, top_n=10):
+    similar_movies = recommend_similar_movies_name(movie_name, movies, movie_encoder, embeddings, top_n=top_n*10)
     if similar_movies.empty:
-        return pd.DataFrame()
+        st.error("Movie Name Invalid")
+        return None
     
     similar_movie_ids = similar_movies["Movie ID"].astype(int).values
     
@@ -236,8 +276,9 @@ def recommend_combined_mix(movie_name, genres, all_genres, movies, movie_encoder
     #         filtered_movies = filtered_movies[filtered_movies[genre] == 1]
     #     else:
     #         print(f"Genre '{genre}' Invalid.")
-    #         return pd.DataFrame() 
-    
+    #         return pd.DataFrame()
+    for genre in genres:
+        filtered_movies = filtered_movies[filtered_movies[genre] == 1]
     if filtered_movies.empty:
         st.error("No Movies Found w/ Specified Genre(s)")
         return None
@@ -263,6 +304,23 @@ def recommend_combined_mix(movie_name, genres, all_genres, movies, movie_encoder
     recommendations = recommendations.reset_index(drop=True)
     recommendations.index += 1
     return recommendations
+
+
+def visualize_recommendations(recommendations, similar_indices, input_movie_title, input_movie_embedding, embeddings):
+    n_samples = len(similar_indices) + 1
+    perplexity = min(30, n_samples - 1) if n_samples > 1 else 1
+    all_embeddings = np.vstack([input_movie_embedding, embeddings[similar_indices]])
+    
+    tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42)
+    reduced_embeddings = tsne.fit_transform(all_embeddings)
+    
+    plot_data = pd.DataFrame({
+        'x': reduced_embeddings[:, 0],
+        'y': reduced_embeddings[:, 1],
+        'Title': pd.concat([pd.Series([input_movie_title]), recommendations['Title']]).reset_index(drop=True),
+        'Similarity': pd.concat([pd.Series([100.0]), recommendations['Cosine Similarity']]).reset_index(drop=True)
+    })
+    return plot_data
 
 # ----------------------
 # Page UI
@@ -323,16 +381,34 @@ def main():
                 with st.spinner('Recommending...'):
                     if movie_name and not selected_genres:
                         recommendations = recommend_similar_movies_name(movie_name, movies, movie_encoder, embeddings, top_n)
+                        # recommendations, similar_indices, matching_movies, target_embedding = recommend_similar_movies_name(movie_name, movies, movie_encoder, embeddings, top_n)
+                        # plot_data = visualize_recommendations(recommendations, similar_indices, matching_movies, target_embedding, embeddings)
+                        # with chart_container(plot_data, tabs=('Chart 📈', 'Dataframe 📄')):
+                        # st.scatter_chart(
+                        #                 plot_data,
+                        #                 x="x",
+                        #                 y="y",
+                        #                 color="Title",
+                        #                 size="Similarity",
+                        #             )
                     elif not movie_name and selected_genres:
-                        recommendations = recommend_by_genre_pop(selected_genres, all_genres, movies, ratings, top_n)
+                        recommendations = recommend_by_genre_pop(selected_genres, movies, ratings, top_n)
                     elif movie_name and selected_genres:
-                        recommendations = recommend_combined_mix(movie_name, selected_genres, all_genres, movies, movie_encoder, embeddings, ratings, top_n)
+                        recommendations = recommend_combined_mix(movie_name, selected_genres, movies, movie_encoder, embeddings, ratings, top_n)
                     if recommendations is not None:
                         st.dataframe(recommendations)
             else:
                 st.warning("Please enter either a preferred movie in the input box or select some genres.")
-
-    
+    # try:
+    #     st.scatter_chart(
+    #                     plot_data,
+    #                     x="x",
+    #                     y="y",
+    #                     color="Title",
+    #                     size="Similarity",
+    #                 )
+    # except:
+    #     pass
     # st.divider()
     st.feedback("thumbs")
     st.warning("""Disclaimer: This model has been quantized for optimization.""")
