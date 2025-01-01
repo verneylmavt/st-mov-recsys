@@ -46,3 +46,5 @@ Ensure you have the following installed:
    ```bash
    streamlit run app.py
    ```
+
+Alternatively you can run `demo.ipynb` for a minimal setup to quickly test the model (implemented w/ `ipywidgets`).

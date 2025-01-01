@@ -73,7 +73,7 @@ class NCF(nn.Module):
 @st.cache_resource
 def load_model(model_name):
     try:
-        model_path = os.path.join("models", str(model_name), "model-q.onnx")
+        model_path = os.path.join("models", model_name, "model-q.onnx")
         ort_session = ort.InferenceSession(model_path)
     except FileNotFoundError:
         st.error(f"Model file not found for {model_name}. Please ensure 'model-q.onnx' exists in the model directory.")
