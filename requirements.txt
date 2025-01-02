@@ -1,9 +1,9 @@
 streamlit
 streamlit-extras
 requests
-numpy
 pandas
 pyarrow
 scikit-learn
 torch
+onnx
 onnxruntime
