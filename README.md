@@ -48,3 +48,14 @@ Ensure you have the following installed:
    ```
 
 Alternatively you can run `demo.ipynb` for a minimal interface to quickly test the model (implemented w/ `ipywidgets`).
+
+## Acknowledgement
+
+I acknowledge the use of the **MovieLens 32M** dataset provided by **GroupLens Research** at the University of Minnesota. This dataset has been instrumental in conducting the research and developing this project.
+
+- **Dataset Name**: MovieLens 32M
+- **Source**: [https://grouplens.org/datasets/movielens/32m/](https://grouplens.org/datasets/movielens/32m/)
+- **License**: The dataset may be used for research purposes under specific conditions; please refer to the [usage license](https://files.grouplens.org/datasets/movielens/ml-32m-README.html#usage-license) for details.
+- **Description**: This dataset contains over 32 million ratings and 2 million tag applications applied to 87,585 movies by 200,948 users, collected from January 9, 1995, to October 12, 2023.
+
+I deeply appreciate the efforts of GroupLens Research in making this dataset available.
