@@ -49,7 +49,7 @@ Ensure you have the following installed:
 
 Alternatively you can run `demo.ipynb` for a minimal interface to quickly test the model (implemented w/ `ipywidgets`).
 
-## Acknowledgement
+## ⚖️ Acknowledgement
 
 I acknowledge the use of the **MovieLens 32M** dataset provided by **GroupLens Research** at the University of Minnesota. This dataset has been instrumental in conducting the research and developing this project.
 
