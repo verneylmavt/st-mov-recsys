@@ -366,7 +366,7 @@ def main():
     #     else:
     #         st.warning("Please enter either a preferred movie in the input box or select some genres.")
     
-    with st.form(key="recommendation_form"):
+    with st.form(key="mov_recsys_form"):
         movie_name = st.text_input("Preferred Movie:")
         st.caption("_e.g. Toy Story_")
         selected_genres = st.multiselect(
