@@ -1,5 +1,7 @@
 numpy
 pandas
+psycopg2
+sqlalchemy
 matplotlib
 seaborn
 scikit-learn

@@ -2,6 +2,7 @@ streamlit
 streamlit-extras
 requests
 pandas
+sqlalchemy
 pyarrow
 scikit-learn
 torch
