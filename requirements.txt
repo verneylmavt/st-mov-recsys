@@ -2,7 +2,7 @@ streamlit
 streamlit-extras
 requests
 pandas
-psycopg2
+# psycopg2
 sqlalchemy
 pyarrow
 scikit-learn
