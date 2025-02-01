@@ -77,8 +77,8 @@ def load_engine():
     db_user = "postgres"
     db_password = "postgres-root"
     db_port = "5432"
-    # engine = create_engine(f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}")
-    engine = create_engine(f"postgresql+psycopg://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}")
+    engine = create_engine(f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}")
+    # engine = create_engine(f"postgresql+psycopg://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}")
     return engine
 
 @st.cache_resource
