@@ -428,7 +428,7 @@ def main():
                     elif movie_name and selected_genres:
                         recommendations = recommend_combined_mix(movie_name, selected_genres, movies, movie_encoder, embeddings, top_n)
                     if recommendations is not None:
-                        st.dataframe(recommendations)
+                        st.dataframe(recommendations, use_container_width=True)
             else:
                 st.warning("Please enter either a preferred movie in the input box or select some genres.")
     # try:
