@@ -8,6 +8,8 @@ The repository also provides a suite of recommendation functions that cater to v
 
 For more information about the training process, please check the `mov-recsys.ipynb` file in the `training` folder.
 
+[Check here to see my other ML projects and tasks](https://github.com/verneylmavt/ml-model).
+
 ## 🎈 Demo App
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://verneylogyt-mov-recsys.streamlit.app/)
