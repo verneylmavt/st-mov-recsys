@@ -1,6 +1,10 @@
 # 🍿 Movie Recommender System
 
-This repository contains machine learning models of Movie Recommender System, designed to be deployed using ONNX and utilized in a Streamlit-based web application. The app provides an interactive interface for performing this task using neural network architectures. [Check here to see other ML tasks](https://github.com/verneylmavt/ml-model).
+This repository implements an end-to-end movie recommender system that leverages neural collaborative filtering to generate personalized movie recommendations based on historical user data. The core idea is to learn latent representations of users and movies from past interactions, enabling the model to predict the strength of the relationship between a user and a movie. The primary objective is to facilitate intelligent recommendations such that when a user inputs a specific movie or expresses certain preferences, the system accurately predicts similar movies that the user might enjoy.
+
+At the heart of the project is a deep learning model that employs embedding layers for users and movies, which are then combined and processed through a multi-layer perceptron to capture complex, non-linear interaction patterns. This architecture is specifically designed to model the subtleties of user behavior and movie characteristics, ensuring that the recommendations are both personalized and relevant. By training on historical rating data, the model learns to uncover latent features that define user preferences and movie attributes without relying on manually engineered features.
+
+The repository also provides a suite of recommendation functions that cater to various use cases, including similarity-based recommendations, genre-based recommendations, and a combined approach that integrates both collaborative and content signals. These functions allow users to obtain targeted movie suggestions—whether by finding movies similar to a given title or by filtering based on specific genres—making the system versatile and adaptable for different recommendation scenarios.
 
 For more information about the training process, please check the `mov-recsys.ipynb` file in the `training` folder.
 
