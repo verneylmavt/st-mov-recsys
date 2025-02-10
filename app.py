@@ -355,6 +355,9 @@ def visualize_recommendations(recommendations, similar_indices, input_movie_titl
 # Page UI
 # ----------------------
 def main():
+    st.set_page_config(page_title="Movie Recommender System"
+                    # layout="wide"
+                    )
     st.title("Movie Recommender System")
     
     model_names = list(model_info.keys())
