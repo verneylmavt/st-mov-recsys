@@ -4,7 +4,7 @@ import requests
 import streamlit as st
 from streamlit_extras.chart_container import chart_container
 from streamlit_extras.mention import mention
-from streamlit_extras.echo_expander import echo_expander
+# from streamlit_extras.echo_expander import echo_expander
 import numpy as np
 import pandas as pd
 import onnxruntime as ort
@@ -17,56 +17,58 @@ import plotly.express as px
 # ----------------------
 # Model Information
 # ----------------------
-model_info = {
-    "ncf": {
-        "subheader": "Model: Neural Collaborative Filtering (NCF)",
-        "pre_processing": """
-Dataset = MovieLens 32M Dataset
-        """,
-        "parameters": """
-Batch Size = 1024
+@st.cache_resource
+def load_model_info():
+    model_info = {
+        "ncf": {
+            "subheader": "Model: Neural Collaborative Filtering (NCF)",
+            "pre_processing": """
+    Dataset = MovieLens 32M Dataset
+            """,
+            "parameters": """
+    Batch Size = 1024
 
-Number of Users = 138,493
-Number of Movies = 27,278
-Embedding Dimension = 50
-Number of MLP (Multi-Layer Perceptron) Layers = 2 (128+64)
-Dropout Rate = 0.2
+    Number of Users = 138,493
+    Number of Movies = 27,278
+    Embedding Dimension = 50
+    Number of MLP (Multi-Layer Perceptron) Layers = 2 (128+64)
+    Dropout Rate = 0.2
 
-Epochs = 20
-Learning Rate = 0.001
-Loss Function = MSELoss
-Optimizer = AdamW
-Weight Decay = 0.01
-        """,
-        "model_code": """
-class NCF(nn.Module):
-    def __init__(self, num_users, num_items, embedding_dim=50, hidden_layers=[128, 64], dropout=0.2):
-        super(NCF, self).__init__()
-        self.user_embedding = nn.Embedding(num_users, embedding_dim)
-        self.item_embedding = nn.Embedding(num_items, embedding_dim)
-        nn.init.normal_(self.user_embedding.weight, std=0.01)
-        nn.init.normal_(self.item_embedding.weight, std=0.01)
-        layers = []
-        input_size = embedding_dim * 2
-        for hidden in hidden_layers:
-            layers.append(nn.Linear(input_size, hidden))
-            layers.append(nn.ReLU())
-            layers.append(nn.Dropout(dropout))
-            input_size = hidden
-        self.mlp = nn.Sequential(*layers)
-        self.output_layer = nn.Linear(input_size, 1)
-        
-    def forward(self, user, item):
-        user_emb = self.user_embedding(user)
-        item_emb = self.item_embedding(item)
-        x = torch.cat([user_emb, item_emb], dim=-1)
-        x = self.mlp(x)
-        rating = self.output_layer(x)
-        return rating.squeeze()
-        """
+    Epochs = 20
+    Learning Rate = 0.001
+    Loss Function = MSELoss
+    Optimizer = AdamW
+    Weight Decay = 0.01
+            """,
+            "model_code": """
+    class NCF(nn.Module):
+        def __init__(self, num_users, num_items, embedding_dim=50, hidden_layers=[128, 64], dropout=0.2):
+            super(NCF, self).__init__()
+            self.user_embedding = nn.Embedding(num_users, embedding_dim)
+            self.item_embedding = nn.Embedding(num_items, embedding_dim)
+            nn.init.normal_(self.user_embedding.weight, std=0.01)
+            nn.init.normal_(self.item_embedding.weight, std=0.01)
+            layers = []
+            input_size = embedding_dim * 2
+            for hidden in hidden_layers:
+                layers.append(nn.Linear(input_size, hidden))
+                layers.append(nn.ReLU())
+                layers.append(nn.Dropout(dropout))
+                input_size = hidden
+            self.mlp = nn.Sequential(*layers)
+            self.output_layer = nn.Linear(input_size, 1)
+            
+        def forward(self, user, item):
+            user_emb = self.user_embedding(user)
+            item_emb = self.item_embedding(item)
+            x = torch.cat([user_emb, item_emb], dim=-1)
+            x = self.mlp(x)
+            rating = self.output_layer(x)
+            return rating.squeeze()
+            """
+        }
     }
-}
-
+    return model_info
 # ----------------------
 # Loading Function
 # ----------------------
@@ -360,6 +362,7 @@ def main():
                     )
     st.title("Movie Recommender System")
     
+    model_info = load_model_info()
     model_names = list(model_info.keys())
     model = st.selectbox("Select a Model", model_names)
     st.divider()
@@ -467,6 +470,7 @@ def main():
     
     st.subheader("""Model""")
     # st.code(model_info[model]["model_code"], language="python")
+    from streamlit_extras.echo_expander import echo_expander
     with echo_expander(code_location="below", label="Code"):
         import torch
         import torch.nn as nn
